@@ -1,0 +1,65 @@
+﻿@{
+    ViewBag.Title = "Demo Page";
+            Layout = "~/Views/Shared/_Layout.cshtml";
+        }
+
+<h2>Dynamic Organizational Structure</h2>
+
+        <div id="empChart"></div>
+        <input type="button" id="btnLoadChart" value="Load Data" />
+
+        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+        <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+        <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+       
+        <script type="text/javascript">
+            google.load("visualization", "1", { packages: ["orgchart"] });
+
+            $('#btnLoadChart').click(function () {
+                drawEmpChart();
+            });
+
+            function drawEmpChart() {
+               
+                
+                $.ajax({
+                    type: "POST",
+                    url: "Home/GetEmpChartData",
+                    data: '{}',
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function (empData) {
+                        alert(empData.length);
+
+                      
+
+                        var chartData = new google.visualization.DataTable();
+
+                        
+                        chartData.addColumn('string', 'Name');
+                        chartData.addColumn('string', 'Manager');
+                        chartData.addColumn('string', 'ToolTip');
+
+                        $.each(empData, function (index, row) {
+                            var reportID = row.ReportID.toString() == "0" ? '' : row.ReportID.toString();
+
+                            chartData.addRows([[{
+                                v: row.Id.toString(),
+                                f: row.FirstName + '<a href="mailto:' + row.Email + '"><div>(<span>' + row.Designation + '</span>)</div><img height="50px" width="50px" src = "Photos/' + row.Id.toString() + '.jpg" /></a>'
+                            }, reportID, row.Designation]]);
+                        });
+
+                        var chart = new google.visualization.OrgChart($("#empChart")[0]);
+                        chart.draw(chartData, { allowHtml: true });
+                    },
+                    failure: function (xhr, status, error) {
+                        alert("Failure: " + xhr.responseText);
+                    },
+                    error: function (xhr, status, error) {
+                        alert("Error: " + xhr.responseText);
+                    }
+                });
+            }
+        </script>
+
+
